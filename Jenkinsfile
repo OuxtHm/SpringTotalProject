@@ -54,7 +54,7 @@
             
             
          }
-         
+         /*
          stage('Deploy to EC2'){
             steps{
                sshagent(['SERVER_SSH_KEY']){
@@ -69,9 +69,9 @@
                }
             }
             
-         }
+         }*/
          
-         /*
+ 
          stage('Docker Compose Down'){
             steps{
                echo 'Docker-compose down'
@@ -80,19 +80,19 @@
                   """
             }
          }
-         */
-         /*
+ 
+
          stage('Docker Stop And RM'){
             steps{
                echo 'docker stop rm'
                sh """
-                  docker stop ${CONTAINER_NAME} || true
-                  docker rm ${CONTAINER_NAME} || true
-                  docker pull ${IMAGE_NAME}
+                  docker stop total-app || true
+                  docker rm total-app || true
+                  docker pull ${DOCKER_IMAGE}
                   """
             }
             
-         }   
+         }  
          stage('Docker Compose up'){
             steps{
                echo 'Docker-compose up'
@@ -102,7 +102,7 @@
             }
             
          }
-         */
+         
          /*stage('Docker Run'){
             steps{
                echo 'Docker Run'
