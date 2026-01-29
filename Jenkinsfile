@@ -9,7 +9,7 @@ pipeline {
 		
 	stages {
 		stage('Check Out') {
-			stpes {
+			steps {
 				git branch: 'main',
 				url: 'https://github.com/OuxtHm/SpringTotalProject.git'
 			}
