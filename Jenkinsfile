@@ -6,7 +6,7 @@
          DOCKER_TAG = "latest"
          EC2_HOST = "13.124.198.168"
          EC2_USER = "ubuntu"
-         COMPOSE_FILE = "total-app"
+         COMPOSE_FILE = "total_app"
       }
       stages{
          stage('Checkout'){
@@ -87,8 +87,8 @@
             steps{
                echo 'docker stop rm'
                sh """
-                  docker stop total-app || true
-                  docker rm total-app || true
+                  docker stop total_app || true
+                  docker rm total_app || true
                   docker pull ${DOCKER_IMAGE}
                   """
             }
