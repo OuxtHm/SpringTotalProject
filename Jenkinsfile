@@ -88,7 +88,7 @@ EOF
             
          }*/
          
- 
+ /*
          stage('Docker Compose Down'){
             steps{
                echo 'Docker-compose down'
@@ -119,6 +119,7 @@ EOF
             }
             
          }
+         */
          
          /*stage('Docker Run'){
             steps{
