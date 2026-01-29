@@ -60,13 +60,13 @@
 			steps {
 				 sshagent(['SERVER_SSH_KEY']){
 				 sh """
-					ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} << 'EOF'
+					ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} '
 					docker rm -f \$(docker ps -q --filter "publish=9090") 2>/dev/null || true
 					cd /home/ubuntu/app
 					docker-compose down || true
 					docker-compose pull
 					docker-compose up -d
-EOF
+					'
 				    """
 				}
 			}
