@@ -55,6 +55,22 @@
             
             
          }
+         
+         stage('Deply docker-compose'){
+			steps {
+				 sshagent(['SERVER_SSH_KEY']){
+				 sh """
+					ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} << EOF
+					cd /home/ubuntu/app
+					docker-compose down
+					docker-compose pull
+					docker-compose up -d
+					EOF	
+				    """
+				}
+			}
+		 }
+         
          /*
          stage('Deploy to EC2'){
             steps{
