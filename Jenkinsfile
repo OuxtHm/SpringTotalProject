@@ -6,7 +6,7 @@
          DOCKER_TAG = "latest"
          EC2_HOST = "13.124.198.168"
          EC2_USER = "ubuntu"
-         COMPOSE_FILE = "total_app"
+         COMPOSE_FILE = "total-app"
       }
       stages{
          stage('Checkout'){
