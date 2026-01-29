@@ -1,78 +1,135 @@
-pipeline {
-	agent any
-	
-	// 전역변수 => ${SERVER_IP}
-	environment {
-			SERVER_IP = "13.124.198.168"
-			SERVER_USER = "ubuntu"
-			APP_DIR = "~/app"
-			JAR_NAME = "SpringTotalProject-0.0.1-SNAPSHOT.war"
-	}
-		
-	stages {
-		
-		/*
-		 연결 확인 = ngrok
-		 stage('Check Git Info') {
-			steps {
-				sh '''
-				    echo "===Git Info==="
-				    git branch
-				    git log -1
-				   '''
-			}
-		}
-		*/
-		// 감지 = main : push (commit)
-		stage('Check Out') {
-			steps {
-				 echo 'Git Checkout'
-                 checkout scm
-			}
-		}
-		
-		// gradle build => war파일을 다시 생성 
-		stage('Gradle Permission') {
-			steps {
-				sh '''
-				    chmod +x gradlew
-				   '''
-			}
-		}
-		
-		// build 시작 
-		stage('Gradle Build') {
-			steps {
-				sh '''
-				    ./gradlew clean build
-				   '''
-			}
-		}
-		
-		// war파일 전송 = rsync / scp 
-		stage('Deploy = rsync') {
-			steps {
-				sshagent(credentials:['SERVER_SSH_KEY']){
-					sh """
-					    rsync -avz -e 'ssh -o StrictHostKeyChecking=no' build/libs/*.war ${SERVER_USER}@${SERVER_IP}:${APP_DIR}
-					   """
-				}
-			}
-		}
-		// 실행 명령 
-		
-		stage('Run Application') {
-			steps {
-				sshagent(credentials:['SERVER_SSH_KEY']){
-					sh """
-					    ssh -o StrictHostKeyChecking=no ${SERVER_USER}@${SERVER_IP} << 'EOF'
-					       pkill -f 'java -jar' || true
-					       nohup java -jar ${APP_DIR}/${JAR_NAME} > log.txt 2>&1 &
-EOF
-					   """ 
-				}
-			}
-		}
-		
-	}
-}
+   pipeline {
+      agent any
+      
+      environment {
+         DOCKER_IMAGE = "ouxthm/total-app"
+         DOCKER_TAG = "latest"
+         EC2_HOST = "13.124.198.168"
+         EC2_USER = "ubuntu"
+      }
+      stages{
+         stage('Checkout'){
+            steps{
+               echo 'Git Checkout'
+               checkout scm
+            }
+         }
+         
+         stage('Gradlew Build') {
+            steps{
+               echo 'Gradle Build'
+               sh """
+                   chmod +x gradlew
+                   ./gradlew clean build -x test
+                  """
+            }
+         }
+         
+         stage('Docker build'){
+            steps {
+               echo 'Docker Image build'
+               sh """
+                   docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} .
+                   
+                   """
+               
+            }
+         }
+         
+         stage('Docker Hub Login'){
+            steps {
+               echo 'Docker Hub Login'
+               withCredentials([usernamePassword(
+                  credentialsId: 'dockerhub-config',
+                  usernameVariable: 'DOCKER_ID',
+                  passwordVariable: 'DOCKER_PW'
+               )]){
+                  sh """
+                      echo $DOCKER_PW | docker login -u $DOCKER_ID --password-stdin
+                      docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
+                     """
+               }
+               
+            }
+            
+            
+         }
+         
+         stage('Deploy to EC2'){
+            steps{
+               sshagent(['SERVER_SSH_KEY']){
+               sh """
+                  ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} << EOF
+                       docker stop total_app || true
+                       docker rm total_app || true
+                       docker pull ${DOCKER_IMAGE}:${DOCKER_TAG}
+                       docker run --name total_app -it -d -p 9090:9090 ${DOCKER_IMAGE}:${DOCKER_TAG}
+                  """
+                
+               }
+            }
+            
+         }
+         
+         /*
+         stage('Docker Compose Down'){
+            steps{
+               echo 'Docker-compose down'
+               sh """
+                  docker-compose -f ${COMPOSE_FILE} down || true
+                  """
+            }
+         }
+         */
+         /*
+         stage('Docker Stop And RM'){
+            steps{
+               echo 'docker stop rm'
+               sh """
+                  docker stop ${CONTAINER_NAME} || true
+                  docker rm ${CONTAINER_NAME} || true
+                  docker pull ${IMAGE_NAME}
+                  """
+            }
+            
+         }   
+         stage('Docker Compose up'){
+            steps{
+               echo 'Docker-compose up'
+               sh """
+                  docker-compose -f ${COMPOSE_FILE} up -d
+                 """
+            }
+            
+         }
+         */
+         /*stage('Docker Run'){
+            steps{
+               echo 'Docker Run'
+               sh """
+                  docker stop ${CONTAINER_NAME} || true
+                  docker rm ${CONTAINER_NAME} || true
+                  
+                  docker pull ${IMAGE_NAME}
+                  
+                  docker run --name ${CONTAINER_NAME} \
+                  -it -d -p 9090:9090 \
+                  ${IMAGE_NAME}
+                  """
+               
+            }
+         }*/
+         
+          
+      
+      }
+      post {
+            success{
+               echo 'CI/CD 실행 성공'
+            }
+            failure {
+               echo 'CI/CD 실행 실패'
+               
+            }
+         }
+   }
