@@ -61,10 +61,10 @@
                sshagent(['SERVER_SSH_KEY']){
                sh """
                   ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} << EOF
-                       docker stop total_app || true
-                       docker rm total_app || true
+                       docker stop total-app || true
+                       docker rm total-app || true
                        docker pull ${DOCKER_IMAGE}:${DOCKER_TAG}
-                       docker run --name total_app -it -d -p 9090:9090 ${DOCKER_IMAGE}:${DOCKER_TAG}
+                       docker run --name total-app -it -d -p 9090:9090 ${DOCKER_IMAGE}:${DOCKER_TAG}
                   """
                 
                }
@@ -87,8 +87,8 @@
             steps{
                echo 'docker stop rm'
                sh """
-                  docker stop total_app || true
-                  docker rm total_app || true
+                  docker stop total-app || true
+                  docker rm total-app || true
                   docker pull ${DOCKER_IMAGE}
                   """
             }
