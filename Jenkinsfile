@@ -10,8 +10,8 @@ pipeline {
 	stages {
 		stage('Check Out') {
 			steps {
-				git branch: 'main',
-				url: 'https://github.com/OuxtHm/SpringTotalProject.git'
+				echo 'Git Checkout'
+				checkout scm
 			}
 		}
 		
@@ -36,7 +36,7 @@ pipeline {
 				sshagent(credentials:['SERVER_SSH_KEY']){
 					sh """
 						rsync -avz -e "ssh -o StrictHostKeyChecking=no" \
-                  		build/libs/*.jar ${SERVER_USER}@${SERVER_IP}:${APP_DIR} 
+                  		build/libs/*.war ${SERVER_USER}@${SERVER_IP}:${APP_DIR} 
 					   """
 				}
 			}
