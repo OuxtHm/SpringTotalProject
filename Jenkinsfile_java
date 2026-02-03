@@ -65,7 +65,7 @@ pipeline {
             
             kubectl delete deployment totalapp-deployment || true
             
-            kubectl apply -f /home/sist/k8s/deployment.yaml --validate=false
+            kubectl apply -f /var/lib/jenkins/k8s/deployment.yaml --validate=false
             
             kubectl get pods
         '''
