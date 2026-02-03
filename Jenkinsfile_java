@@ -67,7 +67,9 @@ pipeline {
 		            
 		            kubectl rollout restart deployment totalapp-deployment
 		            
-		            kubectl rollout status deployment totalapp-deployment
+		            kubectl rollout status deployment totalapp-deployment --timeout=90s
+		            
+		            kubectl get pods
 		        '''
 		    }
 		}
