@@ -59,18 +59,18 @@ pipeline {
 		// 실행 명령 
 		
 		stage('Deploy to Minikube') {
-    steps {
-        sh '''
-            export KUBECONFIG=/home/sist/.kube/config
-            
-            kubectl delete deployment totalapp-deployment || true
-            
-            kubectl apply -f /var/lib/jenkins/k8s/deployment.yaml --validate=false
-            
-            kubectl get pods
-        '''
-    }
-}
+		    steps {
+		        sh '''
+		            export KUBECONFIG=/home/sist/.kube/config
+		            
+		            kubectl apply -f /var/lib/jenkins/k8s/deployment.yaml --validate=false
+		            
+		            kubectl rollout restart deployment totalapp-deployment
+		            
+		            kubectl rollout status deployment totalapp-deployment
+		        '''
+		    }
+		}
 		
 	}
 }
