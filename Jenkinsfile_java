@@ -3,8 +3,6 @@ pipeline {
 	
 	// 전역변수 => ${SERVER_IP}
 	environment {
-			SERVER_IP = "13.124.198.168"
-			SERVER_USER = "ubuntu"
 			APP_DIR = "~/app"
 			JAR_NAME = "SpringTotalProject-0.0.1-SNAPSHOT.war"
 	}
@@ -60,7 +58,7 @@ pipeline {
 			}
 		}
 		// 실행 명령 
-		
+		/*
 		stage('Run Application') {
 			steps {
 				sshagent(credentials:['SERVER_SSH_KEY']){
@@ -73,6 +71,6 @@ EOF
 				}
 			}
 		}
-		
+		*/
 	}
 }

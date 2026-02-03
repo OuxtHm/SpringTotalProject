@@ -77,11 +77,12 @@
             steps{
                sshagent(['SERVER_SSH_KEY']){
                sh """
-                  ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} << EOF
+                  ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} '
                        docker stop total-app || true
                        docker rm total-app || true
                        docker pull ${DOCKER_IMAGE}:${DOCKER_TAG}
                        docker run --name total-app -it -d -p 9090:9090 ${DOCKER_IMAGE}:${DOCKER_TAG}
+                       '
                   """
                 
                }
