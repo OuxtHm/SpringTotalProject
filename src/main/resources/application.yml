@@ -1,18 +1,37 @@
 #port
 server:
-  port: 9090
+  port: 9090 
+  shutdown: graceful
 #MVC 
 spring:
+  lifecycle:
+   timeout-per-shutdown-phase: 5s
   mvc:
    view:
      prefix: /WEB-INF/views/
      suffix: .jsp
   datasource:
-   url: jdbc:oracle:thin:@211.238.142.22:1521:XE
+   url: jdbc:oracle:thin:@//211.238.142.22:1521/XE
    username: hr
    password: happy
-   driver-class-name: oracle.jdbc.driver.OracleDriver
+   driver-class-name: oracle.jdbc.OracleDriver
+   type: com.zaxxer.hikari.HikariDataSource
+   hikari: #커넥션풀 
+    minimum-idle: 5           
+    maximum-pool-size: 10     
+    idle-timeout: 30000      
+    max-lifetime: 1800000    
+    connection-timeout: 30000
 #MyBatis
 mybatis:
   type-aliases-package: com.sist.web.vo
   mapper-locations: mybatis/mapper/*.xml
+
+menagement:
+ endpoints:
+    web:
+     exposure:
+      include: health
+ endpoins:
+    health:
+     show-details: always 
