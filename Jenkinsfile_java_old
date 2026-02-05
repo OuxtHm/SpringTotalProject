@@ -1,0 +1,79 @@
+pipeline {
+    agent any
+    
+    environment {
+        // 도커 허브 이미지 경로
+        DOCKER_IMAGE = "ouxthm/total-app:latest"
+        // 젠킨스 Credentials에 등록한 ID
+        DOCKER_HUB_CREDS = 'dockerhub-creds'
+        // 쿠버네티스 설정 파일 경로
+        KUBE_CONFIG = "/home/sist/.kube/config"
+        // deployment.yaml 파일 위치
+        K8S_YAML = "/var/lib/jenkins/k8s/deployment.yaml"
+    }
+        
+    stages {
+        // 1. 소스 코드 가져오기
+        stage('Check Out') {
+            steps {
+                echo 'Git Checkout'
+                checkout scm
+            }
+        }
+        
+        // 2. Gradle 실행 권한 부여
+        stage('Gradle Permission') {
+            steps {
+                sh 'chmod +x gradlew'
+            }
+        }
+        
+        // 3. 이전 빌드 기록 삭제 후 새로 빌드 (소스 반영 보장)
+        stage('Gradle Build') {
+            steps {
+                sh './gradlew clean build'
+            }
+        }
+        
+        // 4. 도커 로그인 & 빌드 & 푸시 (한 단계로 묶어 처리)
+        stage('Docker Build & Push') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: "${DOCKER_HUB_CREDS}",
+                    usernameVariable: 'DH_USER',
+                    passwordVariable: 'DH_PASS'
+                )]) {
+                    sh '''
+                        # 도커 로그인
+                        echo "$DH_PASS" | docker login -u "$DH_USER" --password-stdin
+                        
+                        # 캐시 없이 빌드 (HTML 변경 사항 반영 보장)
+                        docker build --no-cache -t ${DOCKER_IMAGE} .
+                        
+                        # 도커 허브로 이미지 전송
+                        docker push ${DOCKER_IMAGE}
+                    '''
+                }
+            }
+        }
+        
+        // 5. 미니쿠베에 배포 및 강제 재시작
+        stage('Deploy to MiniKube') {
+            steps {
+                sh """
+                    # 1. 새로운 설정 적용 (sist 계정 권한 사용)
+                    sudo -u sist /usr/local/bin/kubectl apply -f ${K8S_YAML}
+                    
+                    # 2. 🔥 핵심: 새 이미지를 다운로드받도록 Pod 강제 재시작
+                    sudo -u sist /usr/local/bin/kubectl rollout restart deployment/totalapp-deployment
+                    
+                    # 3. 배포 완료될 때까지 상태 확인
+                    sudo -u sist /usr/local/bin/kubectl rollout status deployment/totalapp-deployment --timeout=90s
+                    
+                    # 4. 최종 Pod 상태 출력
+                    sudo -u sist /usr/local/bin/kubectl get pods
+                """
+            }
+        }
+    }
+}
