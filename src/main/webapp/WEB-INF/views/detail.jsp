@@ -73,7 +73,7 @@
 					<tr>
 						<td class="text-right">
 							<a href="/find" class="btn btn-xs btn-info">맛집 검색</a> 
-							<a href="javascript:history.back()" class="btn btn-xs btn-warning">목록</a>
+							<a href="/" class="btn btn-xs btn-warning">목록</a>
 						</td>
 					</tr>
 				</table>
